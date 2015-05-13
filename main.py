@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import json
 import time
 from hashlib import md5
@@ -14,15 +16,15 @@ def log_string(msg, channel):
     return md5(channel + msg).digest()
 
 def log_message(msg, channel):
-    with open("archive", "a") as f:
+    with open(config.archive_path, "a") as f:
         f.write(log_string(msg, channel) + "\n")
 
 def in_log(msg, channel):
-    if not isfile("archive"):
+    if not isfile(config.archive_path):
         return False
 
     t = log_string(msg, channel)
-    with open("archive", "r") as f:
+    with open(config.archive_path, "r") as f:
         for line in f:
             if line.strip() == t:
                 return True
