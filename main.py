@@ -1,44 +1,37 @@
 #!/usr/bin/env python
 
-import json
 import time
-from hashlib import md5
 from os.path import join, getmtime, isfile
 from os import listdir
 
-import requests
+import slack
+import slack.chat
+import slack.search
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
 import config
 
-def log_string(msg, channel):
-    return md5(channel + msg).digest()
+already_sent = []
 
-def log_message(msg, channel):
-    with open(config.archive_path, "a") as f:
-        f.write(log_string(msg, channel) + "\n")
+def message_sent(msg, channel):
+    # Check the local cache first
+    if channel + msg in already_sent:
+        return True
+    else:
+        already_sent.append(channel + msg)
 
-def in_log(msg, channel):
-    if not isfile(config.archive_path):
-        return False
+    query   = "in:{} from:{} {}".format(channel, config.bot_username, msg)
+    results = slack.search.messages(query, count=1)
+    if not results["ok"]:
+        # Couldn't get the results, assume message already sent to avoid
+        # duplicates at all costs (really annoying).
+        return True
 
-    t = log_string(msg, channel)
-    with open(config.archive_path, "r") as f:
-        for line in f:
-            if line.strip() == t:
-                return True
-
-    return False
+    return results["messages"]["total"] > 0
 
 def send_message(msg, channel=config.default_channel):
-    payload = {
-        "text": msg,
-        "channel": channel,
-        "icon_emoji": config.bot_emoji,
-        "username": config.bot_username
-        }
-    r = requests.post(config.webhook_url, data=json.dumps(payload))
+    slack.chat.post_message(channel, msg, username=config.bot_username, icon_emoji=config.bot_emoji)
 
 def process_journal_line(line):
     if line.find(config.prompt) != 0:
@@ -47,10 +40,15 @@ def process_journal_line(line):
     msg = line[len(config.prompt):].strip()
     channel = config.default_channel
     if msg.find("#") == 0: # See if a channel has been specified.
-        channel, msg = msg.split(" ", 1)
+        l = msg.split(" ", 1)
+        if len(l) == 2:
+            channel, msg = l
+        else:
+            # The channel wasn't actually specified, highlight just included a
+            # hashtag.
+            msg = l[0]
 
-    if not in_log(msg, channel):
-        log_message(msg, channel)
+    if not message_sent(msg, channel):
         send_message(msg, channel)
 
 def process(path):
@@ -67,6 +65,8 @@ class JournalHandler(FileSystemEventHandler):
             process(modified)
 
 if __name__ == "__main__":
+    slack.api_token = config.slack_api_token
+
     event_handler = JournalHandler()
     observer = Observer()
     observer.schedule(event_handler, config.journal_entry_path)

@@ -1,6 +1,5 @@
-webhook_url = "### INSERT TEAM WEBHOOK URL: https://api.slack.com/incoming-webhooks ###"
+slack_api_token = "### INSERT SLACK TOKEN https://api.slack.com/web ###"
 journal_entry_path = "/Users/alice/journal/entries"
-archive_path = "/Users/alice/journal/archive"
 default_channel = "#general"
 prompt = "Highlight:"
 bot_username = "journal"
