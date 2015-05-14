@@ -1,15 +1,6 @@
-#!/usr/bin/env python
-
-import time
-from os.path import join, getmtime, isfile
-from os import listdir
-
 import slack
 import slack.chat
 import slack.search
-from watchdog.events import FileSystemEventHandler
-from watchdog.observers import Observer
-
 import config
 
 already_sent = []
@@ -33,7 +24,7 @@ def message_sent(msg, channel):
 def send_message(msg, channel=config.default_channel):
     slack.chat.post_message(channel, msg, username=config.bot_username, icon_emoji=config.bot_emoji)
 
-def process_journal_line(line):
+def process(line):
     if line.find(config.prompt) != 0:
         return
 
@@ -51,30 +42,4 @@ def process_journal_line(line):
     if not message_sent(msg, channel):
         send_message(msg, channel)
 
-def process(path):
-    with open(path, "r") as f:
-        for line in f: process_journal_line(line)
-
-class JournalHandler(FileSystemEventHandler):
-    def on_modified(self, event):
-        if event.is_directory:
-            # FSEvents in OS X only returns the directory when a file is
-            # modified, so get the most recently modified folder.
-            files = [ join(event.src_path, f) for f in listdir(event.src_path) ]
-            modified = max(files, key=getmtime)
-            process(modified)
-
-if __name__ == "__main__":
-    slack.api_token = config.slack_api_token
-
-    event_handler = JournalHandler()
-    observer = Observer()
-    observer.schedule(event_handler, config.journal_entry_path)
-    observer.start()
-    try:
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        observer.stop()
-
-    observer.join()
+slack.api_token = config.slack_api_token
