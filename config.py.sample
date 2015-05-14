@@ -1,6 +1,19 @@
+debug = False
+
 slack_api_token = "### INSERT SLACK TOKEN https://api.slack.com/web ###"
+
 journal_entry_path = "/Users/alice/journal/entries"
-default_channel = "#general"
-prompt = "Highlight:"
-bot_username = "journal"
-bot_emoji = ":memo:"
+default_channel    = "#general"
+prompt             = "Highlight:"
+bot_username       = "journal"
+bot_emoji          = ":memo:"
+
+dropbox_app_key    = "### INSERT DROPBOX APP KEY ###"
+dropbox_app_secret = "### INSERT DROPBOX APP SECRET ###"
+dropbox_entry_path = "/journal/entries"
+
+redis_url = "redis://localhost:6379:0"
+redis_prefix = "sjh"
+
+flask_host = "127.0.0.1"
+flask_port = 5000

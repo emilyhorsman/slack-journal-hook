@@ -8,11 +8,11 @@ from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
 import config
-import hook
+from hook import Hook
 
 def process(path):
     with open(path, "r") as f:
-        for line in f: hook.process(line)
+        for line in f: h.process(line)
 
 class JournalHandler(FileSystemEventHandler):
     def on_modified(self, event):
@@ -25,6 +25,7 @@ class JournalHandler(FileSystemEventHandler):
 
 if __name__ == "__main__":
     event_handler = JournalHandler()
+    h = Hook()
     observer = Observer()
     observer.schedule(event_handler, config.journal_entry_path)
     observer.start()
