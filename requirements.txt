@@ -2,7 +2,7 @@ argh==0.26.1
 dropbox==2.2.0
 Flask==0.10.1
 itsdangerous==0.24
-Jinja2==2.7.3
+Jinja2==2.11.3
 MarkupSafe==0.23
 pathtools==0.1.2
 pyslack==0.1.3
